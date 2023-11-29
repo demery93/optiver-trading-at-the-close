@@ -15,7 +15,7 @@ df.drop(dropcols, axis=1, inplace=True)
 
 lgb_params = {
         "objective": "mae",
-        "n_estimators": 2500,
+        "n_estimators": 2200,
         "num_leaves": 256,
         "learning_rate": 0.00877,
         "device": "gpu",

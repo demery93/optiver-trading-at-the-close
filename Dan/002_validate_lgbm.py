@@ -2,26 +2,22 @@ import numpy as np
 import pandas as pd
 import lightgbm as lgb
 
-import os
-import time
-import gc
-import joblib
-import warnings
-
-from numba import njit, prange
-from itertools import combinations
-from warnings import simplefilter
-from utils import reduce_mem_usage, timer
-from tqdm import tqdm
-
 cutoff = 390
 df = pd.read_feather("input/train_processed.f")
+
+ir = pd.read_csv("ir.csv")
+#features = ir[ir.ir>-0.2].feature.values.tolist() + ['seconds_in_bucket','stock_id']
+#-0.2 -> 5.8733
+#-0.25 -> 5.87202
+#-0.3 -> 5.87248
+
 
 y = df['target']
 dates = df.date_id
 
 dropcols = ['target','date_id','time_id']
 df.drop(dropcols, axis=1, inplace=True)
+#df = df[features]
 x_train = df[dates <= cutoff].reset_index(drop=True)
 x_val = df[dates > cutoff].reset_index(drop=True)
 y_train = y[dates <= cutoff]
@@ -101,10 +97,8 @@ val_df['prediction'] = val_pred
 val_df['centered_prediction'] = center_target_at_zero(val_df.copy(), 'prediction')
 print(f"Model: {np.mean(np.abs(val_df['target'] - val_df['prediction']))}")
 print(f"Model with centered target: {np.mean(np.abs(val_df['target'] - val_df['centered_prediction']))}")
-#Model: 5.871304781096436
-#Model with centered target: 5.86830882584381
-
-# 5.8713
+#Model: 5.871045387661461
+#Model with centered target: 5.867787327767533
 import plotly.express as px
 feat_imp = pd.Series(lgb_model.feature_importances_, index=x_train.columns).sort_values()
 print('Columns with poor contribution', feat_imp[feat_imp<10].index)
@@ -112,3 +106,4 @@ fig = px.bar(x=feat_imp, y=feat_imp.index, orientation='h')
 fig.show()
 
 feat_imp.sort_values()[-40:]
+
